@@ -415,8 +415,8 @@ function PhoneMock() {
           </div>
           {/* messages */}
           <div className="flex-1 px-3 py-4 space-y-3 overflow-hidden">
-            <Bubble side="left" delay="0s">Oi! Vi o anúncio do site. Vocês ainda têm vaga pra essa semana?</Bubble>
-            <Bubble side="right" delay=".4s">Oi Marina, tudo bem? 👋 Temos sim! Pra qual serviço você tá pensando?</Bubble>
+            <Bubble side="left" delay="0s">Olá! Vi o anúncio do site. Ainda têm vaga para esta semana?</Bubble>
+            <Bubble side="right" delay=".4s">Olá Marina, tudo bem? 👋 Temos sim! Para que serviço está a pensar?</Bubble>
             <Bubble side="left" delay=".8s">Quero fazer design de sobrancelha + cílios</Bubble>
             <Bubble side="right" delay="1.2s">
               Perfeito 🤌 Tenho quinta 15h ou sexta 10h. Qual prefere?
@@ -520,9 +520,9 @@ function Pain() {
           Lead que espera, lead que <span className="text-grad">compra do concorrente</span>.
         </h2>
         <p className="mt-6 text-lg md:text-xl text-white/65 leading-relaxed">
-          A primeira empresa a responder vende. Sempre. Enquanto você está dirigindo, atendendo na loja
-          ou dormindo, os leads do anúncio que você pagou estão sumindo na fila. O AtendeZap responde
-          em segundos, qualifica e já te entrega o lead pronto pra fechar.
+          A primeira empresa a responder vende. Sempre. Enquanto está a conduzir, a atender na loja
+          ou a dormir, os leads do anúncio que pagou estão a desaparecer na fila. O AtendeZap responde
+          em segundos, qualifica e entrega-lhe o lead pronto para fechar.
         </p>
       </div>
     </section>
@@ -535,19 +535,19 @@ function HowItWorks() {
     {
       n: "01",
       t: "Conecte o WhatsApp",
-      d: "Escaneia o QR Code uma vez e pronto. Funciona com o número que você já usa.",
+      d: "Lê o QR Code uma vez e está feito. Funciona com o número que já usa.",
       icon: <MessageSquareText className="size-5" />,
     },
     {
       n: "02",
       t: "Treine sua IA",
-      d: "Uma tela com a personalidade da empresa, produtos, regras. Salvou? Já tá atendendo.",
+      d: "Um ecrã com a personalidade da empresa, produtos, regras. Guardou? Já está a atender.",
       icon: <Bot className="size-5" />,
     },
     {
       n: "03",
       t: "A IA atende e organiza o CRM",
-      d: "Responde no automático, qualifica, e move o card no kanban — você só fecha.",
+      d: "Responde automaticamente, qualifica e move o cartão no kanban — só tem de fechar.",
       icon: <KanbanSquare className="size-5" />,
     },
   ];
@@ -575,17 +575,17 @@ function HowItWorks() {
 /* ===================== FEATURES ===================== */
 function Features() {
   const items = [
-    { t: "Inbox unificado", d: "Todas as conversas em um só lugar, com histórico completo por contato.", icon: <MessageSquareText className="size-5" /> },
-    { t: "IA que responde como você", d: "Treinada com o tom da sua empresa. Faz uma pergunta por vez, não soa robô.", icon: <Bot className="size-5" /> },
-    { t: "CRM kanban automático", d: "A IA classifica e move: Conversas, Negociando, Ganho, Perda. Sem digitar.", icon: <KanbanSquare className="size-5" /> },
-    { t: "Multi-atendente", d: "Convide seu time. Cada um vê o que importa, com papéis e permissões.", icon: <Users className="size-5" /> },
-    { t: "Pausa por palavra", d: "Digitou /pausar? A IA cala a boca e você assume aquele contato.", icon: <PauseCircle className="size-5" /> },
+    { t: "Inbox unificado", d: "Todas as conversas num só lugar, com histórico completo por contacto.", icon: <MessageSquareText className="size-5" /> },
+    { t: "IA que responde como você", d: "Treinada com o tom da sua empresa. Faz uma pergunta de cada vez, não soa a robô.", icon: <Bot className="size-5" /> },
+    { t: "CRM kanban automático", d: "A IA classifica e move: Conversas, Em negociação, Ganho, Perdido. Sem escrever nada.", icon: <KanbanSquare className="size-5" /> },
+    { t: "Multi-atendente", d: "Convide a sua equipa. Cada um vê o que importa, com papéis e permissões.", icon: <Users className="size-5" /> },
+    { t: "Pausa por palavra", d: "Escreveu /pausar? A IA fica em silêncio e assume esse contacto.", icon: <PauseCircle className="size-5" /> },
     { t: "Relatórios que mostram o dinheiro", d: "Tempo de resposta, conversão, taxa de ganho. Decisão em segundos.", icon: <LineChart className="size-5" /> },
   ];
   return (
     <section id="recursos" className="px-5 md:px-8 py-24 md:py-28">
       <div className="mx-auto max-w-6xl">
-        <SectionTitle eyebrow="Recursos" title={<>Tudo que você precisa pra <span className="text-grad">parar de perder venda</span>.</>} />
+        <SectionTitle eyebrow="Recursos" title={<>Tudo o que precisa para <span className="text-grad">parar de perder vendas</span>.</>} />
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {items.map((it) => (
             <div key={it.t} className="glass border-sheen rounded-2xl p-6 hover:-translate-y-1 transition-transform reveal" data-reveal>
@@ -609,14 +609,14 @@ function Pricing({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plano
       slug: "starter",
       n: "Starter",
       p: "€47",
-      d: "Pra autônomo testando a operação.",
+      d: "Para trabalhador independente a testar a operação.",
       f: [
         "1 número de WhatsApp",
-        "1 usuário",
+        "1 utilizador",
         "1.500 conversas/mês",
-        "1.000 contatos",
+        "1.000 contactos",
         "CRM Kanban + IA Gemini",
-        "Suporte por email",
+        "Suporte por e-mail",
       ],
       cta: "Começar 3 dias grátis",
     },
@@ -624,32 +624,32 @@ function Pricing({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plano
       slug: "pro",
       n: "Pro",
       p: "€97",
-      d: "Pra time que já vende todo dia. O mais escolhido.",
+      d: "Para equipas que já vendem todos os dias. O mais escolhido.",
       f: [
         "1 número de WhatsApp",
-        "5 usuários no painel",
+        "5 utilizadores no painel",
         "6.000 conversas/mês",
-        "5.000 contatos",
+        "5.000 contactos",
         "IA Gemini + GPT + Claude",
         "Google Agenda + Relatórios",
         "Suporte prioritário",
       ],
       highlight: true,
       cta: "Quero o Pro — 3 dias grátis",
-      badge: "Economize 2 meses no anual",
+      badge: "Poupe 2 meses no anual",
     },
     {
       slug: "business",
       n: "Business",
       p: "€197",
-      d: "Pra operação alta performance e múltiplas equipes.",
+      d: "Para operação de alta performance e múltiplas equipas.",
       f: [
         "1 número de WhatsApp",
-        "20 usuários no painel",
+        "20 utilizadores no painel",
         "30.000 conversas/mês",
-        "25.000 contatos",
+        "25.000 contactos",
         "API + Webhooks",
-        "Onboarding 1:1 + Gerente dedicado",
+        "Onboarding 1:1 + Gestor dedicado",
         "SLA 99,9% + Suporte 24/7",
       ],
       cta: "Falar com vendas",
@@ -658,8 +658,8 @@ function Pricing({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plano
   return (
     <section id="planos" className="px-5 md:px-8 py-24 md:py-28">
       <div className="mx-auto max-w-6xl">
-        <SectionTitle eyebrow="Planos" title={<>Quanto mais <span className="text-grad">cresce</span>, mais <span className="text-grad">economiza</span>.</>} />
-        <p className="text-center text-white/55 max-w-2xl mx-auto mt-4 text-[15px]">Todos os planos têm 3 dias grátis. Cancele antes do fim do trial e não é cobrado.</p>
+        <SectionTitle eyebrow="Planos" title={<>Quanto mais <span className="text-grad">cresce</span>, mais <span className="text-grad">poupa</span>.</>} />
+        <p className="text-center text-white/55 max-w-2xl mx-auto mt-4 text-[15px]">Todos os planos têm 3 dias grátis. Cancele antes do fim do período de teste e não é cobrado.</p>
         <div className="mt-12 grid md:grid-cols-3 gap-5 items-stretch">
           {plans.map((pl) => (
             <div
@@ -701,7 +701,7 @@ function Pricing({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plano
             </div>
           ))}
         </div>
-        <p className="mt-5 text-center text-xs text-white/40">Cartão é exigido apenas para liberar o trial. Cancele em até 3 dias e não pagamos nada.</p>
+        <p className="mt-5 text-center text-xs text-white/40">O cartão só é pedido para ativar o período de teste. Cancele em até 3 dias e não paga nada.</p>
       </div>
     </section>
   );
@@ -716,17 +716,17 @@ function Testimonials() {
     },
     {
       n: "Rafael — Loja de Suplementos",
-      t: "A galera me chamava no WhatsApp 1h da manhã. Hoje todo mundo é respondido na hora. CRM organizado sem eu tocar.",
+      t: "As pessoas chamavam-me no WhatsApp à 1h da manhã. Hoje toda a gente é respondida na hora. CRM organizado sem eu tocar.",
     },
     {
       n: "Marina — Agência de Marketing",
-      t: "Tirei o lead frio do operacional do time. A IA filtra e só passa quem é quente. Salvou minha sanidade.",
+      t: "Tirei o lead frio do operacional da equipa. A IA filtra e só passa quem é quente. Salvou a minha sanidade.",
     },
   ];
   return (
     <section className="px-5 md:px-8 py-24 md:py-28">
       <div className="mx-auto max-w-6xl">
-        <SectionTitle eyebrow="Quem usa" title={<>Times que pararam de perder venda <span className="text-grad">no 'oi, sumiu'</span>.</>} />
+        <SectionTitle eyebrow="Quem usa" title={<>Equipas que pararam de perder vendas <span className="text-grad">no 'olá, sumiu'</span>.</>} />
         <div className="mt-12 grid md:grid-cols-3 gap-5">
           {items.map((it) => (
             <div key={it.n} className="glass border-sheen rounded-2xl p-6 reveal" data-reveal>
@@ -748,19 +748,19 @@ function Faq() {
   const items = [
     {
       q: "Preciso saber programar?",
-      a: "Não. Você conecta o WhatsApp por QR Code, preenche uma tela contando sobre sua empresa, e a IA já tá atendendo. Quem sabe usar WhatsApp consegue.",
+      a: "Não. Liga o WhatsApp por QR Code, preenche um ecrã a contar sobre a sua empresa, e a IA já está a atender. Quem sabe usar o WhatsApp consegue.",
     },
     {
       q: "Funciona com vários atendentes?",
-      a: "Funciona. Você convida sua equipe, cada um com seu acesso. A IA atende o que dá pra atender; o que precisa de humano, o time assume.",
+      a: "Funciona. Convida a sua equipa, cada um com o seu acesso. A IA atende o que consegue; o que precisa de um humano, a equipa assume.",
     },
     {
       q: "A IA responde igual um robô?",
-      a: "Não. Ela é treinada pra falar como gente — mensagens curtas, uma pergunta por vez, no tom da sua empresa. Em testes cegos, cliente nem percebe.",
+      a: "Não. É treinada para falar como uma pessoa — mensagens curtas, uma pergunta de cada vez, no tom da sua empresa. Em testes cegos, o cliente nem percebe.",
     },
     {
       q: "Meu número fica seguro?",
-      a: "Sim. Cada empresa tem ambiente isolado, dados criptografados e você é dono da conversa. Você pode desconectar a qualquer momento.",
+      a: "Sim. Cada empresa tem ambiente isolado, dados encriptados e é dona da conversa. Pode desligar a qualquer momento.",
     },
   ];
   const [open, setOpen] = useState<number | null>(0);
@@ -806,10 +806,10 @@ function FinalCta({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plan
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 size-[500px] rounded-full opacity-40 blur-3xl" style={{ background: "radial-gradient(circle,#25D366,transparent 60%)" }} />
         <div className="relative">
           <h2 className="font-display text-4xl sm:text-5xl md:text-7xl leading-[0.98] tracking-tight">
-            Pare de perder venda no <span className="text-grad">"oi, sumiu"</span>.
+            Pare de perder vendas no <span className="text-grad">"olá, sumiu"</span>.
           </h2>
           <p className="mt-6 text-white/70 max-w-xl mx-auto text-lg sm:text-xl">
-            3 dias grátis pra ver a IA atendendo seu WhatsApp e fechando lead sozinha. Cancele antes e não paga nada.
+            3 dias grátis para ver a IA a atender o seu WhatsApp e a fechar leads sozinha. Cancele antes e não paga nada.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row flex-wrap justify-center gap-3">
             <button
