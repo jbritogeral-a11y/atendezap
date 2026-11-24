@@ -7,13 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { LogIn, Pause, Play, CalendarClock, Loader2, KeyRound, Eye, Sparkles } from "lucide-react";
+import { LogIn, Pause, Play, CalendarClock, Loader2, KeyRound, Eye, Sparkles, Package } from "lucide-react";
 import { brand } from "@/config/brand";
-import { listCompanies, suspendCompany, extendTrial, resetCompanyOwnerPassword, getCompanyDetails } from "@/lib/master.functions";
+import { listCompanies, suspendCompany, extendTrial, resetCompanyOwnerPassword, getCompanyDetails, assignCompanyPlan, listPlansBasic } from "@/lib/master.functions";
 import { adminGrantCredits } from "@/lib/credits.functions";
 
 export const Route = createFileRoute("/master/empresas")({
-  head: () => ({ meta: [{ title: `${brand.name} — Empresas` }] }),
+  head: () => ({ meta: [
+    { title: `${brand.name} — Empresas` },
+    { name: "description", content: "Gestão de empresas, planos e subscrições no painel Master do AtendeZap." },
+    { property: "og:title", content: `${brand.name} — Empresas` },
+    { property: "og:description", content: "Gestão de empresas, planos e subscrições no painel Master do AtendeZap." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: EmpresasPage,
 });
 
@@ -25,6 +32,10 @@ function EmpresasPage() {
   const resetPwd = useServerFn(resetCompanyOwnerPassword);
   const details = useServerFn(getCompanyDetails);
   const grantCredits = useServerFn(adminGrantCredits);
+  const assignPlan = useServerFn(assignCompanyPlan);
+  const loadPlans = useServerFn(listPlansBasic);
+  const [plans, setPlans] = useState<Awaited<ReturnType<typeof listPlansBasic>>["plans"] | null>(null);
+  const [assigningCompanyId, setAssigningCompanyId] = useState<string | null>(null);
   const [detail, setDetail] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
@@ -66,6 +77,45 @@ function EmpresasPage() {
     await extend({ data: { companyId: c.id, days } });
     toast.success(`Trial estendido +${days}d`);
     reload();
+  }
+
+  async function doAssignPlan(c: any) {
+    if (assigningCompanyId) return;
+    setAssigningCompanyId(c.id);
+    try {
+      const activePlans = plans ?? (await loadPlans()).plans.filter((p) => p.preco_cents > 0);
+      setPlans(activePlans);
+      if (!activePlans.length) {
+        toast.error("Não existem planos pagos ativos disponíveis.");
+        return;
+      }
+      const raw = prompt(
+        `Atribuir plano a "${c.nome}".\n\nEscreva o número:\n${activePlans.map((p, i) => `${i + 1}) ${p.nome}`).join("\n")}\n(ou cole o id do plano)`,
+      );
+      if (raw === null) return;
+      const choice = raw.trim();
+      const plan = /^\d+$/.test(choice)
+        ? activePlans[Number(choice) - 1]
+        : activePlans.find((p) => p.id === choice);
+      if (!plan) {
+        toast.error("Plano inválido. Escolha um número da lista ou um id de plano válido.");
+        return;
+      }
+      const rawDays = prompt("Dias do período (por defeito, 30)", "30");
+      if (rawDays === null) return;
+      const periodDays = rawDays.trim() ? Number(rawDays) : 30;
+      if (!Number.isFinite(periodDays)) {
+        toast.error("Número de dias inválido.");
+        return;
+      }
+      const result = await assignPlan({ data: { companyId: c.id, planId: plan.id, periodDays } });
+      toast.success(`Plano ${result.planNome} atribuído. Empresa ativa.`);
+      await reload();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível atribuir o plano.");
+    } finally {
+      setAssigningCompanyId(null);
+    }
   }
 
   async function doResetPassword(c: any) {
@@ -167,7 +217,7 @@ function EmpresasPage() {
                 <div className="col-span-1 text-xs text-muted-foreground">
                   {c.ultima_atividade ? new Date(c.ultima_atividade).toLocaleDateString("pt-PT", { timeZone: "Europe/Lisbon" }) : "—"}
                 </div>
-                <div className="col-span-2 flex justify-end gap-1">
+                <div className="col-span-2 flex flex-wrap justify-end gap-1">
                   <Button size="sm" variant="outline" onClick={() => openDetails(c.id)} title="Ver detalhes">
                     <Eye className="size-3.5" />
                   </Button>
@@ -176,6 +226,9 @@ function EmpresasPage() {
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => doGrantCredits(c)} title="Créditos de IA">
                     <Sparkles className="size-3.5" />
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => doAssignPlan(c)} title="Atribuir plano" aria-label={`Atribuir plano a ${c.nome}`} disabled={assigningCompanyId !== null}>
+                    {assigningCompanyId === c.id ? <Loader2 className="size-3.5 animate-spin" /> : <Package className="size-3.5" />}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => doExtend(c)} title="Estender trial">
                     <CalendarClock className="size-3.5" />

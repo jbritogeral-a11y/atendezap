@@ -235,6 +235,68 @@ export const listPlansBasic = createServerFn({ method: "POST" })
     return { plans: data ?? [] };
   });
 
+export const assignCompanyPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { companyId: string; planId: string; periodDays?: number }) => {
+    if (!d.companyId?.trim()) throw new Error("Empresa inválida.");
+    if (!d.planId?.trim()) throw new Error("Plano inválido.");
+    const days = d.periodDays ?? 30;
+    if (!Number.isFinite(days)) throw new Error("Número de dias inválido.");
+    return {
+      companyId: d.companyId.trim(),
+      planId: d.planId.trim(),
+      periodDays: Math.max(1, Math.min(365, Math.floor(days))),
+    };
+  })
+  .handler(async ({ context, data }) => {
+    await assertSuper(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: plan, error: planError } = await supabaseAdmin
+      .from("plan")
+      .select("id, nome, slug, preco_cents")
+      .eq("id", data.planId)
+      .eq("ativo", true)
+      .maybeSingle();
+    if (planError) throw new Error("Não foi possível carregar o plano.");
+    if (!plan) throw new Error("Plano ativo não encontrado.");
+    if (plan.preco_cents <= 0) throw new Error("Selecione um plano pago.");
+
+    const { data: subscription, error: subscriptionError } = await supabaseAdmin
+      .from("subscription")
+      .select("id")
+      .eq("company_id", data.companyId)
+      .maybeSingle();
+    if (subscriptionError) throw new Error("Não foi possível carregar a subscrição da empresa.");
+
+    const { data: company, error: companyError } = await supabaseAdmin
+      .from("company")
+      .update({ status_cobranca: "ativo", selected_plan_slug: plan.slug })
+      .eq("id", data.companyId)
+      .select("id")
+      .maybeSingle();
+    if (companyError) throw new Error("Não foi possível ativar a empresa.");
+    if (!company) throw new Error("Empresa não encontrada.");
+
+    const now = new Date();
+    const period = {
+      plan_id: plan.id,
+      status: "active",
+      provider: "manual",
+      current_period_start: now.toISOString(),
+      current_period_end: new Date(now.getTime() + data.periodDays * 86400000).toISOString(),
+    };
+    const { error: saveError } = subscription
+      ? await supabaseAdmin.from("subscription").update({
+          ...period,
+          trial_ends_at: null,
+          cancel_at_period_end: false,
+          updated_at: now.toISOString(),
+        }).eq("id", subscription.id)
+      : await supabaseAdmin.from("subscription").insert({ ...period, company_id: data.companyId });
+    if (saveError) throw new Error("Não foi possível atribuir o plano. Tente novamente.");
+    return { ok: true, planNome: plan.nome, slug: plan.slug };
+  });
+
 export const getSuperAdminEmails = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
