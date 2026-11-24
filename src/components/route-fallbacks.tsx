@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, useEffect } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { Loader2, MessageSquareText } from "lucide-react";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
@@ -20,7 +20,7 @@ export function RoutePendingComponent() {
   );
 }
 
-export function RouteErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function RouteErrorComponentImpl({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -68,3 +68,5 @@ export function RouteErrorComponent({ error, reset }: { error: Error; reset: () 
     </div>
   );
 }
+
+export const RouteErrorComponent = lazy(async () => ({ default: RouteErrorComponentImpl }));
