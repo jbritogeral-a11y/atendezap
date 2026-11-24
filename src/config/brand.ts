@@ -9,6 +9,6 @@ export const brand = {
 
 // Suporte fixo — usado em rodapé, telas de erro e mensagens de falha.
 // Editar aqui troca em todos os pontos.
-export const supportWhatsapp = "351911000000";
+export const supportWhatsapp = "351934702319";
 export const supportWhatsappUrl = `https://wa.me/${supportWhatsapp}`;
-export const supportWhatsappDisplay = "+351 911 000 000";
+export const supportWhatsappDisplay = "+351 934 702 319";
