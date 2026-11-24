@@ -73,6 +73,13 @@ function featureIcon(text: string) {
 function normalizeFeatureText(text: string) {
   return /n[úu]meros? de whatsapp/i.test(text) ? "1 número de WhatsApp" : text;
 }
+function normalizeFeatures(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.map((f) => String(f));
+  if (raw && typeof raw === "object") {
+    return Object.keys(raw).filter((k) => Boolean((raw as Record<string, unknown>)[k]));
+  }
+  return [];
+}
 function buildCheckoutUrl(base: string, email?: string | null, companyId?: string | null) {
   try {
     const u = new URL(base);
@@ -112,7 +119,7 @@ function CheckoutPage() {
   useEffect(() => {
     supabase.from("plan").select("*").eq("ativo", true).order("ordem").then(({ data }) => {
       if (data?.length) {
-        const list = data as Plano[];
+        const list = (data as Plano[]).map((p) => ({ ...p, features: normalizeFeatures(p.features) }));
         setPlans(list);
         const initial =
           search.plano ||
