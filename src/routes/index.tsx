@@ -608,7 +608,7 @@ function Pricing({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plano
     {
       slug: "starter",
       n: "Starter",
-      p: "R$ 97",
+      p: "€47",
       d: "Pra autônomo testando a operação.",
       f: [
         "1 número de WhatsApp",
@@ -623,7 +623,7 @@ function Pricing({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plano
     {
       slug: "pro",
       n: "Pro",
-      p: "R$ 197",
+      p: "€97",
       d: "Pra time que já vende todo dia. O mais escolhido.",
       f: [
         "1 número de WhatsApp",
@@ -641,7 +641,7 @@ function Pricing({ onCta }: { onCta: (p: "/entrar" | "/demo/dashboard" | "#plano
     {
       slug: "business",
       n: "Business",
-      p: "R$ 497",
+      p: "€197",
       d: "Pra operação alta performance e múltiplas equipes.",
       f: [
         "1 número de WhatsApp",
@@ -874,7 +874,7 @@ function Footer() {
         </div>
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row gap-3 items-center justify-between text-xs text-white/40">
           <span>© {new Date().getFullYear()} {brand.name}. Todos os direitos reservados.</span>
-          <span>Feito no Brasil com ☕ e WhatsApp.</span>
+          <span>Feito em Portugal com ☕ e WhatsApp.</span>
         </div>
       </div>
     </footer>

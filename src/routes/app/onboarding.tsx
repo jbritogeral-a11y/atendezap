@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { brand } from "@/config/brand";
 import { Loader2, Check, Building2, MapPin, Palette, Bot, PartyPopper } from "lucide-react";
-import { maskCpf, maskCnpj, maskPhone, maskCep } from "@/lib/masks";
+import { maskNif, maskPhone, maskPostalCode } from "@/lib/masks";
+import { DISTRITOS_PT } from "@/config/locale";
 
 type Search = { checkout?: string };
 
@@ -36,7 +37,7 @@ const SEGMENTOS = [
   "Indústria", "Construção", "Logística", "Outro",
 ];
 
-const PORTES = ["Autônomo / MEI", "Pequena (até 9)", "Média (10-49)", "Grande (50+)"];
+const PORTES = ["Empresário em nome individual", "Micro (até 9)", "Pequena (10-49)", "Média/Grande (50+)"];
 
 function Onboarding() {
   const ctx = Route.useRouteContext();
@@ -136,7 +137,7 @@ function Onboarding() {
       bairro: bairro || null,
       cidade: cidade || null,
       estado: estado || null,
-      pais: "BR",
+      pais: "PT",
       primary_color: primaryColor,
       logo_url: logoUrl || null,
       onboarding_step: nextStep,
@@ -146,14 +147,17 @@ function Onboarding() {
 
   function validateStep(): string | null {
     if (step === 0) {
-      if (!nomeFantasia.trim()) return "Informe o nome da empresa.";
-      if (!cnpjCpf.trim()) return tipoPessoa === "pj" ? "Informe o CNPJ." : "Informe o CPF.";
-      if (!telefone.trim()) return "Informe o telefone.";
+      if (!nomeFantasia.trim()) return "Indique o nome comercial.";
+      if (!cnpjCpf.trim()) return "Indique o NIF.";
+      const nifErr = cnpjCpf.replace(/\D/g, "").length !== 9 ? "Indique um NIF válido (9 dígitos)." : null;
+      if (nifErr) return nifErr;
+      if (telefone.replace(/\D/g, "").length !== 9) return "Indique um telemóvel válido (9XX XXX XXX).";
       if (!segmento) return "Selecione o segmento.";
-      if (!porte) return "Selecione o porte.";
+      if (!porte) return "Selecione a dimensão.";
     }
     if (step === 1) {
-      if (!cep.trim() || !cidade.trim() || !estado.trim()) return "Preencha CEP, cidade e estado.";
+      if (!/^\d{4}-\d{3}$/.test(cep.trim())) return "Indique um código postal válido (XXXX-XXX).";
+      if (!cidade.trim() || !estado.trim()) return "Preencha a localidade e o distrito.";
     }
     return null;
   }
@@ -166,7 +170,7 @@ function Onboarding() {
       await persistPartial(step + 1);
       setStep(Math.min(step + 1, STEPS.length - 1));
     } catch (e: any) {
-      toast.error(e.message || "Falha ao salvar");
+      toast.error(e.message || "Falha ao guardar");
     } finally {
       setSaving(false);
     }
@@ -203,8 +207,8 @@ function Onboarding() {
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold font-display">Vamos configurar seu {brand.name}</h1>
-        <p className="text-sm text-muted-foreground">Leva uns 3 minutos. Você pode voltar e ajustar depois.</p>
+        <h1 className="text-2xl md:text-3xl font-bold font-display">Vamos configurar o seu {brand.name}</h1>
+        <p className="text-sm text-muted-foreground">Demora cerca de 3 minutos. Pode voltar e ajustar depois.</p>
       </div>
 
       {/* Stepper */}
@@ -237,30 +241,30 @@ function Onboarding() {
                 type="button"
                 onClick={() => setTipoPessoa("pj")}
                 className={`flex-1 rounded-lg border-2 p-3 text-sm font-semibold transition ${tipoPessoa === "pj" ? "border-primary bg-primary/5" : "border-border"}`}
-              >Pessoa Jurídica (CNPJ)</button>
+              >Empresa (NIF)</button>
               <button
                 type="button"
                 onClick={() => setTipoPessoa("pf")}
                 className={`flex-1 rounded-lg border-2 p-3 text-sm font-semibold transition ${tipoPessoa === "pf" ? "border-primary bg-primary/5" : "border-border"}`}
-              >Pessoa Física (CPF)</button>
+              >Particular (NIF)</button>
             </div>
 
-            <Row label={tipoPessoa === "pj" ? "CNPJ" : "CPF"}>
+            <Row label="NIF">
               <Input
                 value={cnpjCpf}
-                onChange={(e) => setCnpjCpf(tipoPessoa === "pj" ? maskCnpj(e.target.value) : maskCpf(e.target.value))}
-                placeholder={tipoPessoa === "pj" ? "00.000.000/0000-00" : "000.000.000-00"}
+                onChange={(e) => setCnpjCpf(maskNif(e.target.value))}
+                placeholder="123 456 789"
                 inputMode="numeric"
               />
             </Row>
 
             {tipoPessoa === "pj" && (
-              <Row label="Razão social">
-                <Input value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} placeholder="Ex: Padaria do João LTDA" />
+              <Row label="Denominação social">
+                <Input value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} placeholder="Ex: Padaria do João, Lda." />
               </Row>
             )}
 
-            <Row label={tipoPessoa === "pj" ? "Nome fantasia" : "Nome do negócio"}>
+            <Row label={"Nome comercial"}>
               <Input value={nomeFantasia} onChange={(e) => setNomeFantasia(e.target.value)} placeholder="Ex: Padaria do João" />
             </Row>
 
@@ -268,8 +272,8 @@ function Onboarding() {
               <Row label="E-mail corporativo">
                 <Input type="email" value={emailCorp} onChange={(e) => setEmailCorp(e.target.value)} />
               </Row>
-              <Row label="Telefone">
-                <Input value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} placeholder="(11) 99999-9999" inputMode="tel" />
+              <Row label="Telemóvel">
+                <Input value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} placeholder="912 345 678" inputMode="tel" />
               </Row>
             </div>
 
@@ -282,7 +286,7 @@ function Onboarding() {
                   </SelectContent>
                 </Select>
               </Row>
-              <Row label="Porte">
+              <Row label="Dimensão">
                 <Select value={porte} onValueChange={setPorte}>
                   <SelectTrigger><SelectValue placeholder="Escolha…" /></SelectTrigger>
                   <SelectContent>
@@ -301,17 +305,24 @@ function Onboarding() {
         {step === 1 && (
           <>
             <div className="grid sm:grid-cols-3 gap-3">
-              <Row label="CEP"><Input value={cep} onChange={(e) => setCep(maskCep(e.target.value))} placeholder="00000-000" inputMode="numeric" /></Row>
-              <div className="sm:col-span-2"><Row label="Rua"><Input value={rua} onChange={(e) => setRua(e.target.value)} /></Row></div>
+              <Row label="Código postal"><Input value={cep} onChange={(e) => setCep(maskPostalCode(e.target.value))} placeholder="1000-001" inputMode="numeric" /></Row>
+              <div className="sm:col-span-2"><Row label="Morada"><Input value={rua} onChange={(e) => setRua(e.target.value)} /></Row></div>
             </div>
             <div className="grid sm:grid-cols-3 gap-3">
               <Row label="Número"><Input value={numero} onChange={(e) => setNumero(e.target.value)} /></Row>
-              <Row label="Complemento"><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Sala, andar…" /></Row>
-              <Row label="Bairro"><Input value={bairro} onChange={(e) => setBairro(e.target.value)} /></Row>
+              <Row label="Andar/Fração"><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Ex: 2.º Esq." /></Row>
+              <Row label="Freguesia"><Input value={bairro} onChange={(e) => setBairro(e.target.value)} /></Row>
             </div>
             <div className="grid sm:grid-cols-3 gap-3">
-              <div className="sm:col-span-2"><Row label="Cidade"><Input value={cidade} onChange={(e) => setCidade(e.target.value)} /></Row></div>
-              <Row label="Estado (UF)"><Input value={estado} onChange={(e) => setEstado(e.target.value.toUpperCase().slice(0, 2))} placeholder="SP" /></Row>
+              <div className="sm:col-span-2"><Row label="Localidade"><Input value={cidade} onChange={(e) => setCidade(e.target.value)} /></Row></div>
+              <Row label="Distrito">
+                <Select value={estado} onValueChange={setEstado}>
+                  <SelectTrigger><SelectValue placeholder="Escolha…" /></SelectTrigger>
+                  <SelectContent>
+                    {DISTRITOS_PT.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Row>
             </div>
           </>
         )}
@@ -324,7 +335,7 @@ function Onboarding() {
                 <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
               </div>
             </Row>
-            <p className="text-xs text-muted-foreground">Você pode trocar isso depois em Configurações.</p>
+            <p className="text-xs text-muted-foreground">Pode alterar isto depois em Configurações.</p>
           </>
         )}
 
@@ -355,8 +366,8 @@ function Onboarding() {
             </div>
             <h2 className="text-xl font-bold font-display">Tudo certo, {nomeFantasia}!</h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Sua conta está pronta. Você tem <b>3 dias grátis</b> pra explorar tudo.
-              Conecte seu WhatsApp no próximo passo e a IA já começa a atender.
+              A sua conta está pronta. Tem <b>3 dias grátis</b> para explorar tudo.
+              Ligue o seu WhatsApp no passo seguinte e a IA começa logo a atender.
             </p>
           </div>
         )}
@@ -369,7 +380,7 @@ function Onboarding() {
             </Button>
           ) : (
             <Button onClick={finalizar} disabled={saving} className="bg-gradient-brand text-primary-foreground hover:opacity-90 font-semibold">
-              {saving ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : null} Ir pro dashboard
+              {saving ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : null} Ir para o painel
             </Button>
           )}
         </div>

@@ -41,7 +41,7 @@ export const Route = createFileRoute("/app/checkout")({
 });
 
 function formatBRL(cents: number) {
-  return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return (cents / 100).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 }
 function defaultCompanyName(email?: string | null) {
   const local = email?.split("@")[0]?.replace(/[._-]+/g, " ").trim();
@@ -316,7 +316,7 @@ function CheckoutPage() {
                     </div>
                     <p className="text-sm text-muted-foreground mb-5">
                       Plano selecionado: <span className="font-semibold text-foreground">{plano?.nome}</span> —{" "}
-                      {formatBRL(plano?.preco_cents ?? 0)}/mês. Pagamento por cartão, Pix ou boleto via Kiwify.
+                      {formatBRL(plano?.preco_cents ?? 0)}/mês. Pagamento por cartão, MB Way ou transferência.
                     </p>
                     <Button
                       onClick={pagarAgora}
@@ -351,7 +351,7 @@ function CheckoutPage() {
                   </>
                 )}
                 <div className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <ShieldCheck className="size-3.5" /> Pagamento seguro processado pela Kiwify.
+                  <ShieldCheck className="size-3.5" /> Pagamento seguro por cartão, MB Way ou transferência.
                 </div>
               </Card>
             </div>
@@ -366,7 +366,7 @@ function Limit({ label, v }: { label: string; v: number }) {
   return (
     <div className="bg-muted/50 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-xs">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-semibold">{v.toLocaleString("pt-BR")}</span>
+      <span className="font-semibold">{v.toLocaleString("pt-PT")}</span>
     </div>
   );
 }

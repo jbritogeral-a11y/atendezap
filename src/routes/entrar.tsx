@@ -39,9 +39,9 @@ export const Route = createFileRoute("/entrar")({
 });
 
 const PLAN_LABEL: Record<string, { nome: string; preco: string }> = {
-  starter: { nome: "Starter", preco: "R$ 97/mês" },
-  pro: { nome: "Pro", preco: "R$ 197/mês" },
-  business: { nome: "Business", preco: "R$ 497/mês" },
+  starter: { nome: "Starter", preco: "€47/mês" },
+  pro: { nome: "Pro", preco: "€97/mês" },
+  business: { nome: "Business", preco: "€197/mês" },
 };
 
 const emailSchema = z.string().email("E-mail inválido");

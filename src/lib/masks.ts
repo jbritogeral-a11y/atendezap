@@ -1,29 +1,16 @@
-export function maskCpf(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  return d
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1-$2");
-}
-export function maskCnpj(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 14);
-  return d
-    .replace(/^(\d{2})(\d)/, "$1.$2")
-    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
+// Máscaras para Portugal (pt-PT).
+export function maskNif(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 9);
+  return d.replace(/^(\d{3})(\d)/, "$1 $2").replace(/^(\d{3}) (\d{3})(\d)/, "$1 $2 $3");
 }
 export function maskPhone(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 10) {
-    return d
-      .replace(/^(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{4})(\d)/, "$1-$2");
-  }
-  return d
-    .replace(/^(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2");
+  const d = v.replace(/\D/g, "").slice(0, 9);
+  return d.replace(/^(\d{3})(\d)/, "$1 $2").replace(/^(\d{3}) (\d{3})(\d)/, "$1 $2 $3");
 }
-export function maskCep(v: string) {
-  return v.replace(/\D/g, "").slice(0, 8).replace(/^(\d{5})(\d)/, "$1-$2");
+export function maskPostalCode(v: string) {
+  return v.replace(/\D/g, "").slice(0, 7).replace(/^(\d{4})(\d)/, "$1-$2");
 }
+// Aliases de compatibilidade
+export const maskCpf = maskNif;
+export const maskCnpj = maskNif;
+export const maskCep = maskPostalCode;

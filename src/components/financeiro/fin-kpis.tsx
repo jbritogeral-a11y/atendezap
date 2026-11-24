@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight, AlertTriangle, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 
 export function fmtBRL(cents: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((cents || 0) / 100);
+  return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format((cents || 0) / 100);
 }
 
 export function FinKpiGrid({

@@ -159,13 +159,13 @@ function EmpresasPage() {
                   <StatusBadge s={c.status_cobranca} />
                 </div>
                 <div className="col-span-2 text-xs text-muted-foreground">
-                  {c.trial_ate ? new Date(c.trial_ate).toLocaleDateString("pt-BR") : "—"}
+                  {c.trial_ate ? new Date(c.trial_ate).toLocaleDateString("pt-PT", { timeZone: "Europe/Lisbon" }) : "—"}
                 </div>
                 <div className="col-span-2 text-xs text-muted-foreground">
-                  {new Date(c.created_at).toLocaleDateString("pt-BR")}
+                  {new Date(c.created_at).toLocaleDateString("pt-PT", { timeZone: "Europe/Lisbon" })}
                 </div>
                 <div className="col-span-1 text-xs text-muted-foreground">
-                  {c.ultima_atividade ? new Date(c.ultima_atividade).toLocaleDateString("pt-BR") : "—"}
+                  {c.ultima_atividade ? new Date(c.ultima_atividade).toLocaleDateString("pt-PT", { timeZone: "Europe/Lisbon" }) : "—"}
                 </div>
                 <div className="col-span-2 flex justify-end gap-1">
                   <Button size="sm" variant="outline" onClick={() => openDetails(c.id)} title="Ver detalhes">
@@ -219,12 +219,12 @@ function EmpresasPage() {
                 <Field k="Status" v={detail.company.status_cobranca} />
                 <Field k="Email corporativo" v={detail.company.email_corporativo} />
                 <Field k="Telefone" v={detail.company.telefone} />
-                <Field k="CNPJ" v={detail.company.cnpj} />
-                <Field k="Endereço" v={detail.company.endereco} />
-                <Field k="Cidade/UF" v={[detail.company.cidade, detail.company.uf].filter(Boolean).join(" / ")} />
+                <Field k="NIF" v={detail.company.cnpj} />
+                <Field k="Morada" v={detail.company.endereco} />
+                <Field k="Localidade/Distrito" v={[detail.company.cidade, detail.company.uf].filter(Boolean).join(" / ")} />
                 <Field k="Segmento" v={detail.company.segmento} />
-                <Field k="Trial até" v={detail.company.trial_ate ? new Date(detail.company.trial_ate).toLocaleString("pt-BR") : "—"} />
-                <Field k="Criada" v={new Date(detail.company.created_at).toLocaleString("pt-BR")} />
+                <Field k="Trial até" v={detail.company.trial_ate ? new Date(detail.company.trial_ate).toLocaleString("pt-PT", { timeZone: "Europe/Lisbon" }) : "—"} />
+                <Field k="Criada" v={new Date(detail.company.created_at).toLocaleString("pt-PT", { timeZone: "Europe/Lisbon" })} />
               </Section>
 
               <Section title="Assinatura">
@@ -235,7 +235,7 @@ function EmpresasPage() {
                     <Field k="Provider" v={detail.subscription.provider ?? "—"} />
                     <Field k="ID externo" v={detail.subscription.external_subscription_id ?? "—"} />
                     <Field k="Email do comprador" v={detail.subscription.buyer_email ?? "—"} />
-                    <Field k="Período atual até" v={detail.subscription.current_period_end ? new Date(detail.subscription.current_period_end).toLocaleString("pt-BR") : "—"} />
+                    <Field k="Período atual até" v={detail.subscription.current_period_end ? new Date(detail.subscription.current_period_end).toLocaleString("pt-PT", { timeZone: "Europe/Lisbon" }) : "—"} />
                   </>
                 ) : (
                   <div className="text-muted-foreground col-span-2">Sem assinatura.</div>

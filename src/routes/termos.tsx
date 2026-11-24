@@ -120,8 +120,8 @@ function TermosPage() {
           <section>
             <h2 className="text-xl font-semibold text-slate-900">11. Lei aplicável</h2>
             <p className="mt-2">
-              Estes Termos são regidos pelas leis do Brasil. Fica eleito o foro do domicílio
-              do ATENDE ZAP para dirimir controvérsias, salvo disposição legal em contrário.
+              Estes Termos são regidos pela lei portuguesa. Para a resolução de litígios é competente o foro
+              da comarca da sede do ATENDE ZAP, salvo disposição legal imperativa em contrário.
             </p>
           </section>
 
