@@ -8,6 +8,6 @@
 
 ## Pagamento manual no checkout
 
-- [ ] Adicionar configuração Wise/PayPal e função autenticada para marcar pagamento pendente.
-- [ ] Substituir o checkout externo do paywall por transferência e PayPal, sem alterar o trial.
-- [ ] Testar permissões e confirmar o fluxo autenticado na página.
+- [x] Adicionar configuração Wise/PayPal e função autenticada para marcar pagamento pendente.
+- [x] Substituir o checkout externo do paywall por transferência e PayPal, sem alterar o trial.
+- [x] Testar permissões com testes automatizados; verificação no browser dispensada pelo utilizador.
