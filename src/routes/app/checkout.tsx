@@ -5,12 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { brand } from "@/config/brand";
+import { brand, supportWhatsappUrl } from "@/config/brand";
+import { pagamentoPaypal, pagamentoTransferencia, type MetodoPagamento } from "@/config/pagamento";
 import {
   Loader2, ShieldCheck, ArrowLeft, Check, TrendingUp, Crown, Smartphone,
   Users, MessageSquare, Headphones, Calendar, BarChart3, Webhook, Zap, ExternalLink, Sparkles, Lock,
+  Copy, Landmark,
 } from "lucide-react";
-import { createCheckoutCompany } from "@/lib/checkout.functions";
+import { createCheckoutCompany, markCheckoutPending } from "@/lib/checkout.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { trialDaysLeft } from "@/lib/tenant";
 
@@ -36,7 +38,16 @@ export const Route = createFileRoute("/app/checkout")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     plano: typeof s.plano === "string" ? s.plano : undefined,
   }),
-  head: () => ({ meta: [{ title: `${brand.name} — Escolha seu plano` }] }),
+  head: () => ({
+    meta: [
+      { title: `${brand.name} — Escolha o seu plano` },
+      { name: "description", content: "Escolha o seu plano AtendeZap, comece o trial gratuito ou ative o acesso por transferência Wise ou PayPal." },
+      { property: "og:title", content: `${brand.name} — Escolha o seu plano` },
+      { property: "og:description", content: "Escolha o seu plano AtendeZap, comece o trial gratuito ou ative o acesso por transferência Wise ou PayPal." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: CheckoutPage,
 });
 
@@ -80,27 +91,19 @@ function normalizeFeatures(raw: unknown): string[] {
   }
   return [];
 }
-function buildCheckoutUrl(base: string, email?: string | null, companyId?: string | null) {
-  try {
-    const u = new URL(base);
-    if (email) u.searchParams.set("email", email);
-    if (companyId) u.searchParams.set("ref", companyId);
-    return u.toString();
-  } catch {
-    return base;
-  }
-}
-
 function CheckoutPage() {
   const ctx = Route.useRouteContext();
   const navigate = useNavigate();
   const search = useSearch({ from: "/app/checkout" }) as Search;
   const createCompany = useServerFn(createCheckoutCompany);
+  const markPending = useServerFn(markCheckoutPending);
 
   const [plans, setPlans] = useState<Plano[]>([]);
   const [selected, setSelected] = useState<string | null>(search.plano ?? null);
   const [creating, setCreating] = useState(false);
-  const [waiting, setWaiting] = useState(false);
+  const [waiting, setWaiting] = useState(ctx.company?.status_cobranca === "checkout_pending");
+  const [metodo, setMetodo] = useState<MetodoPagamento>("transferencia");
+  const [marking, setMarking] = useState(false);
 
   // Modo: "trial" (sem empresa, oferecer teste grátis) vs "paywall" (empresa existe mas precisa pagar)
   const hasCompany = !!ctx.company;
@@ -131,7 +134,7 @@ function CheckoutPage() {
     });
   }, []);
 
-  // Polling em modo paywall: assim que webhook ativar, libera
+  // Polling em modo paywall: assim que a equipa confirmar o pagamento, libera o acesso.
   useEffect(() => {
     if (!waiting || !ctx.company) return;
     const id = ctx.company.id;
@@ -143,7 +146,7 @@ function CheckoutPage() {
         .maybeSingle();
       if (comp?.status_cobranca === "ativo") {
         clearInterval(interval);
-        toast.success("Pagamento confirmado! Liberando seu acesso…");
+        toast.success("Pagamento confirmado! A libertar o seu acesso…");
         setTimeout(() => {
           window.location.href = comp.onboarding_completed ? "/app/dashboard" : "/app/onboarding";
         }, 800);
@@ -168,14 +171,27 @@ function CheckoutPage() {
     }
   }
 
-  async function pagarAgora() {
-    if (!plano) return toast.error("Selecione um plano.");
-    if (!plano.checkout_url) {
-      return toast.error("Este plano ainda não tem link de checkout configurado. Avise o administrador.");
+  async function avisarPagamento(metodoPagamento: MetodoPagamento) {
+    if (!ctx.company) return;
+    setMarking(true);
+    try {
+      await markPending({ data: { companyId: ctx.company.id, metodo: metodoPagamento } });
+      setWaiting(true);
+      toast.success("Aviso enviado. Vamos confirmar o seu pagamento.");
+    } catch (e: any) {
+      toast.error(e.message || "Não foi possível enviar o aviso de pagamento.");
+    } finally {
+      setMarking(false);
     }
-    const url = buildCheckoutUrl(plano.checkout_url, ctx.user.email, ctx.company?.id ?? null);
+  }
+
+  function abrirPaypal() {
+    const mensagem = encodeURIComponent(
+      `Olá! Preciso do link PayPal para ativar o meu plano AtendeZap. O meu e-mail de registo é ${ctx.user.email ?? ""}.`,
+    );
+    const url = pagamentoPaypal.url ||
+      (pagamentoPaypal.email ? "https://www.paypal.com/signin" : `${supportWhatsappUrl}?text=${mensagem}`);
     window.open(url, "_blank", "noopener,noreferrer");
-    setWaiting(true);
   }
 
   const headerBadge = paywallMode
@@ -185,7 +201,7 @@ function CheckoutPage() {
     ? "Ative seu plano para continuar"
     : "Comece grátis em segundos";
   const headerSubtitle = paywallMode
-    ? "Seus dados ficam aqui esperando. Assim que o pagamento for confirmado, seu acesso é liberado automaticamente."
+    ? "Os seus dados continuam guardados. Assim que confirmarmos o pagamento, o seu acesso será libertado."
     : "Escolha um plano para começar. Você não precisa pagar agora — só vai cobrar no final do período de teste, se quiser continuar.";
 
   return (
@@ -211,7 +227,7 @@ function CheckoutPage() {
           </p>
           {paywallMode && (
             <p className="text-xs text-amber-700 dark:text-amber-400 mt-3 font-medium">
-              Importante: use o mesmo e-mail do cadastro (<span className="font-mono">{ctx.user.email}</span>) na hora de pagar — é assim que a gente libera seu acesso.
+              Importante: use o mesmo e-mail do registo (<span className="font-mono">{ctx.user.email}</span>) ao pagar — é assim que libertamos o seu acesso.
             </p>
           )}
         </div>
@@ -292,41 +308,88 @@ function CheckoutPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-center gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20 text-sm">
                       <Loader2 className="size-4 animate-spin text-primary" />
-                      <span>Aguardando confirmação do pagamento…</span>
+                      <span>A aguardar confirmação do pagamento…</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      A página de pagamento abriu em outra aba. Depois que o pagamento for aprovado, seu acesso é liberado aqui automaticamente
-                      (pode levar alguns segundos).
+                      O aviso foi registado. O seu acesso será libertado aqui automaticamente após a confirmação manual do pagamento.
                     </p>
-                    {plano?.checkout_url && (
-                      <a
-                        href={buildCheckoutUrl(plano.checkout_url, ctx.user.email, ctx.company?.id ?? null)}
-                        target="_blank" rel="noreferrer"
-                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                      >
-                        Reabrir página de pagamento <ExternalLink className="size-3" />
-                      </a>
-                    )}
                   </div>
                 ) : paywallMode ? (
                   <>
                     <div className="flex items-center justify-center gap-2 mb-3">
                       <Lock className="size-5 text-primary" />
-                      <h2 className="font-display text-xl font-bold">Assine para liberar seu acesso</h2>
+                      <h2 className="font-display text-xl font-bold">Ative o plano para libertar o seu acesso</h2>
                     </div>
                     <p className="text-sm text-muted-foreground mb-5">
                       Plano selecionado: <span className="font-semibold text-foreground">{plano?.nome}</span> —{" "}
-                      {formatBRL(plano?.preco_cents ?? 0)}/mês. Pagamento por cartão, MB Way ou transferência.
+                      {formatBRL(plano?.preco_cents ?? 0)}/mês.
                     </p>
-                    <Button
-                      onClick={pagarAgora}
-                      disabled={!plano || !plano?.checkout_url}
-                      size="lg"
-                      className="w-full md:w-auto min-w-[280px] bg-gradient-brand text-primary-foreground hover:opacity-90 font-semibold"
-                    >
-                      <ExternalLink className="size-4 mr-2" />
-                      {plano?.checkout_url ? `Assinar ${plano?.nome} agora` : "Plano sem checkout configurado"}
-                    </Button>
+
+                    <div className="grid grid-cols-2 gap-2 mb-6" role="group" aria-label="Método de pagamento">
+                      <Button
+                        variant={metodo === "transferencia" ? "default" : "outline"}
+                        onClick={() => setMetodo("transferencia")}
+                      >
+                        <Landmark className="size-4 mr-2" /> Transferência
+                      </Button>
+                      <Button
+                        variant={metodo === "paypal" ? "default" : "outline"}
+                        onClick={() => setMetodo("paypal")}
+                      >
+                        PayPal
+                      </Button>
+                    </div>
+
+                    {metodo === "transferencia" ? (
+                      <div className="space-y-4 text-left">
+                        <div className="space-y-2">
+                          <CopyField label="Nome" value={pagamentoTransferencia.titular} />
+                          <CopyField label="IBAN" value={pagamentoTransferencia.iban} />
+                          <CopyField label="Swift/BIC" value={pagamentoTransferencia.swift} />
+                          <CopyField label="Morada do banco" value={pagamentoTransferencia.moradaBanco} />
+                          <CopyField label="Referência" value={ctx.user.email ?? ""} />
+                        </div>
+                        <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground space-y-1.5">
+                          <p className="font-medium text-foreground">{pagamentoTransferencia.bancoNota}</p>
+                          <p>{pagamentoTransferencia.instrucoes}</p>
+                        </div>
+                        <Button
+                          onClick={() => avisarPagamento("transferencia")}
+                          disabled={marking}
+                          size="lg"
+                          className="w-full bg-gradient-brand text-primary-foreground hover:opacity-90 font-semibold"
+                        >
+                          {marking ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Check className="size-4 mr-2" />}
+                          Já transferi — avisar confirmação
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 text-left">
+                        <p className="text-sm text-muted-foreground">{pagamentoPaypal.instrucoes}</p>
+                        {pagamentoPaypal.email && <CopyField label="E-mail PayPal" value={pagamentoPaypal.email} />}
+                        <Button
+                          onClick={abrirPaypal}
+                          size="lg"
+                          className="w-full bg-gradient-brand text-primary-foreground hover:opacity-90 font-semibold"
+                        >
+                          <ExternalLink className="size-4 mr-2" />
+                          {pagamentoPaypal.url
+                            ? "Abrir pagamento PayPal"
+                            : pagamentoPaypal.email
+                              ? "Abrir PayPal"
+                              : "Pedir link PayPal no WhatsApp"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => avisarPagamento("paypal")}
+                          disabled={marking}
+                          className="w-full"
+                        >
+                          {marking ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Check className="size-4 mr-2" />}
+                          Já paguei no PayPal
+                        </Button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
@@ -351,13 +414,36 @@ function CheckoutPage() {
                   </>
                 )}
                 <div className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <ShieldCheck className="size-3.5" /> Pagamento seguro por cartão, MB Way ou transferência.
+                  <ShieldCheck className="size-3.5" /> Pagamento por transferência (Wise) ou PayPal.
                 </div>
               </Card>
             </div>
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function CopyField({ label, value }: { label: string; value: string }) {
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} copiado.`);
+    } catch {
+      toast.error(`Não foi possível copiar ${label.toLowerCase()}.`);
+    }
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-sm font-medium break-all">{value}</p>
+      </div>
+      <Button type="button" size="sm" variant="ghost" onClick={copy} className="shrink-0" aria-label={`Copiar ${label}`}>
+        <Copy className="size-3.5 mr-1.5" /> Copiar
+      </Button>
     </div>
   );
 }

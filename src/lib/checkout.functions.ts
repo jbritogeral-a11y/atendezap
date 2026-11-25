@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { slugify } from "@/lib/tenant";
+import type { MetodoPagamento } from "@/config/pagamento";
 
 export const createCheckoutCompany = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -73,4 +74,39 @@ export const createCheckoutCompany = createServerFn({ method: "POST" })
     if (memberErr) throw memberErr;
 
     return { companyId: company.id as string };
+  });
+
+export const markCheckoutPending = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { companyId: string; metodo?: MetodoPagamento }) => {
+    const companyId = String(d.companyId || "").trim();
+    if (!companyId) throw new Error("Empresa inválida.");
+    const metodo = d.metodo ?? "transferencia";
+    if (metodo !== "transferencia" && metodo !== "paypal") {
+      throw new Error("Método de pagamento inválido.");
+    }
+    return { companyId, metodo };
+  })
+  .handler(async ({ context, data }) => {
+    const { data: membership, error: membershipError } = await context.supabase
+      .from("company_user")
+      .select("company_id")
+      .eq("company_id", data.companyId)
+      .eq("user_id", context.userId)
+      .eq("ativo", true)
+      .maybeSingle();
+    if (membershipError) throw new Error("Não foi possível validar o acesso à empresa.");
+    if (!membership) throw new Error("Não tem acesso a esta empresa.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: company, error: companyError } = await supabaseAdmin
+      .from("company")
+      .update({ status_cobranca: "checkout_pending" })
+      .eq("id", data.companyId)
+      .select("id")
+      .maybeSingle();
+    if (companyError) throw new Error("Não foi possível registar o aviso de pagamento.");
+    if (!company) throw new Error("Empresa não encontrada.");
+
+    return { ok: true, companyId: data.companyId, metodo: data.metodo };
   });
